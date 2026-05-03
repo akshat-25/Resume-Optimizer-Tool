@@ -233,28 +233,112 @@ meter {
   color: #7d5512;
 }
 
-.finding,
-.suggestion {
+.finding {
   border-top: 1px solid #e7ebf0;
   margin-top: 14px;
   padding-top: 14px;
 }
 
-.finding p,
-.suggestion p {
+.suggestion-card {
+  margin-top: 24px;
+  border: 1px solid #e1e7ef;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fcfcfd;
+}
+
+.comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  border-bottom: 1px solid #e1e7ef;
+}
+
+.diff-box {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.diff-box.before {
+  background: #fffafa;
+  border-right: 1px solid #e1e7ef;
+}
+
+.diff-box.after {
+  background: #f7fff9;
+}
+
+.diff-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+
+.before .diff-label {
+  color: #991b1b;
+}
+
+.after .diff-label {
+  color: #166534;
+}
+
+.diff-box p {
+  margin: 0;
+  font-size: 0.96rem;
+  line-height: 1.6;
+  color: #1e293b;
+}
+
+.after-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.verification-badge {
+  font-size: 0.65rem;
+  font-weight: 900;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: #fef3c7;
+  color: #92400e;
+  text-transform: uppercase;
+  border: 1px solid #fcd34d;
+}
+
+.suggestion-meta {
+  padding: 14px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: #ffffff;
+}
+
+.rationale-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 5px;
+  background: #f1f5f9;
+  color: #475569;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.suggestion-meta p {
+  margin: 0;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.finding p {
   color: #526070;
   line-height: 1.55;
-}
-
-.suggestion {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.suggestion footer {
-  grid-column: 1 / -1;
-  color: #526070;
 }
 
 small {
@@ -270,8 +354,13 @@ small {
   .hero,
   .workspace,
   .two-column,
-  .suggestion {
+  .comparison-grid {
     grid-template-columns: 1fr;
+  }
+
+  .diff-box.before {
+    border-right: 0;
+    border-bottom: 1px solid #e1e7ef;
   }
 
   .score-grid {

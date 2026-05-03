@@ -106,20 +106,25 @@
     </div>
 
     <article class="report-block">
-      <h2>Before vs After Improvements</h2>
-      <div class="suggestion" *ngFor="let suggestion of result.suggestions">
-        <div>
-          <span class="label">Before</span>
-          <p>{{ suggestion.before }}</p>
+      <h2>Optimization Suggestions</h2>
+      <div class="suggestion-card" *ngFor="let suggestion of result.suggestions">
+        <div class="comparison-grid">
+          <div class="diff-box before">
+            <span class="diff-label">Current Version</span>
+            <p>{{ suggestion.before }}</p>
+          </div>
+          <div class="diff-box after">
+            <div class="after-header">
+              <span class="diff-label">Recommended Improvement</span>
+              <span class="verification-badge" *ngIf="suggestion.needs_verification">Verify Facts</span>
+            </div>
+            <p>{{ suggestion.after }}</p>
+          </div>
         </div>
-        <div>
-          <span class="label">After</span>
-          <p>{{ suggestion.after }}</p>
-          <small *ngIf="suggestion.needs_verification">Needs verification before use</small>
+        <div class="suggestion-meta">
+          <span class="rationale-tag">Rationale</span>
+          <p>{{ suggestion.why_it_is_better }}</p>
         </div>
-        <footer>
-          <strong>Why:</strong> {{ suggestion.why_it_is_better }}
-        </footer>
       </div>
     </article>
   </section>
