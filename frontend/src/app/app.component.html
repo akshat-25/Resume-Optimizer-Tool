@@ -106,7 +106,12 @@
     </div>
 
     <article class="report-block">
-      <h2>Optimization Suggestions</h2>
+      <div class="panel-header">
+        <h2>Optimization Suggestions</h2>
+        <button type="button" class="secondary" (click)="downloadResume()" [disabled]="isDownloading">
+          {{ isDownloading ? 'Generating...' : 'Download Optimized Resume (.pdf)' }}
+        </button>
+      </div>
       <div class="suggestion-card" *ngFor="let suggestion of result.suggestions">
         <div class="comparison-grid">
           <div class="diff-box before">

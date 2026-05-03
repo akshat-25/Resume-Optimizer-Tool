@@ -30,6 +30,8 @@ interface Suggestion {
 }
 
 interface AnalyzeResponse {
+  resume: any;
+  job_description: any;
   scores: ScoreBreakdown;
   matched_keywords: string[];
   missing_keywords: string[];
@@ -41,6 +43,7 @@ interface AnalyzeResponse {
 
 @Component({
   selector: 'app-root',
+  standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
@@ -53,6 +56,7 @@ export class AppComponent {
   model = 'qwen3:8b';
   useLlm = true;
   isAnalyzing = false;
+  isDownloading = false;
   error = '';
   result: AnalyzeResponse | null = null;
 
@@ -78,7 +82,8 @@ export class AppComponent {
         this.result = response;
         this.isAnalyzing = false;
       },
-      error: () => {
+      error: (err) => {
+        console.error('Analysis error:', err);
         this.error = 'Could not reach the FastAPI backend. Start it on http://localhost:8000 and try again.';
         this.isAnalyzing = false;
       }
@@ -99,7 +104,8 @@ export class AppComponent {
       next: (response) => {
         this.resumeText = response.text;
       },
-      error: () => {
+      error: (err) => {
+        console.error('File extraction error:', err);
         this.error = 'Could not extract text from that file. Try pasting the resume text directly.';
       }
     });
@@ -119,5 +125,33 @@ export class AppComponent {
       { label: 'Clarity', value: this.result.scores.clarity },
       { label: 'Completeness', value: this.result.scores.completeness }
     ];
+  }
+
+  downloadResume(): void {
+    if (!this.result) {
+      return;
+    }
+
+    this.isDownloading = true;
+    this.http.post(`${this.apiBase}/resume/download-pdf`, this.result, {
+      responseType: 'blob'
+    }).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'optimized_resume.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.isDownloading = false;
+      },
+      error: (err) => {
+        console.error('Download error:', err);
+        this.error = 'Failed to generate the optimized resume file. Check console for details.';
+        this.isDownloading = false;
+      }
+    });
   }
 }

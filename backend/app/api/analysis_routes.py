@@ -1,10 +1,5 @@
 import logging
-
-logger = logging.getLogger(__name__)
-
-
-from fastapi import APIRouter, File, UploadFile
-
+from fastapi import APIRouter, File, UploadFile, Response, HTTPException
 from app.models.schemas import AnalyzeRequest, AnalyzeResponse
 from app.services.ats_checker import check_ats
 from app.services.feedback_engine import build_resume_findings, build_rule_based_suggestions
@@ -14,9 +9,12 @@ from app.services.matcher import estimate_semantic_match, match_keywords
 from app.services.resume_parser import parse_resume
 from app.services.rewrite_service import generate_llm_suggestions
 from app.services.scoring_service import score_resume
+from app.services.reconstruction_service import apply_suggestions
+from app.services.pdf_service import generate_pdf
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["analysis"])
-
 
 @router.post("/resume/extract-text")
 async def extract_resume_text(file: UploadFile = File(...)) -> dict[str, str]:
@@ -25,32 +23,23 @@ async def extract_resume_text(file: UploadFile = File(...)) -> dict[str, str]:
     logger.info("Successfully extracted text from file.")
     return {"text": extracted_text}
 
-
 @router.post("/analyze", response_model=AnalyzeResponse)
 async def analyze(payload: AnalyzeRequest) -> AnalyzeResponse:
     logger.info("Starting resume analysis.")
     resume = parse_resume(payload.resume_text)
-    logger.debug("Resume parsed.")
     jd = parse_job_description(payload.job_description)
-    logger.debug("Job description parsed.")
     matched, missing = match_keywords(resume, jd)
-    logger.debug(f"Keywords matched: {len(matched)}, missing: {len(missing)}.")
     semantic = estimate_semantic_match(resume, jd)
-    logger.debug(f"Semantic match estimated: {semantic}.")
     ats_score, ats_findings = check_ats(resume)
-    logger.debug(f"ATS score: {ats_score}.")
     scores = score_resume(resume, jd, matched, semantic, ats_score)
-    logger.debug("Resume scored.")
     resume_findings = build_resume_findings(resume, missing)
     rule_suggestions = build_rule_based_suggestions(resume)
-    logger.debug("Findings and rule-based suggestions generated.")
 
     llm_available = False
     llm_suggestions = []
     if payload.use_llm:
         logger.info(f"Generating LLM suggestions with model: {payload.model}")
         llm_available, llm_suggestions = await generate_llm_suggestions(resume, jd, payload.model)
-        logger.info(f"LLM suggestions generated. LLM available: {llm_available}.")
 
     suggestions = llm_suggestions or rule_suggestions
     logger.info("Resume analysis complete.")
@@ -66,3 +55,26 @@ async def analyze(payload: AnalyzeRequest) -> AnalyzeResponse:
         suggestions=suggestions,
         llm_available=llm_available,
     )
+
+@router.post("/resume/download-pdf")
+async def reconstruct_pdf(payload: AnalyzeResponse) -> Response:
+    """
+    Take an analysis response and generate a modified PDF file.
+    """
+    try:
+        logger.info("Reconstructing resume as PDF.")
+        # 1. Apply suggestions to the resume data
+        modified_resume = apply_suggestions(payload.resume, payload.suggestions)
+        
+        # 2. Generate PDF bytes
+        pdf_bytes = generate_pdf(modified_resume)
+        
+        logger.info("PDF generation successful.")
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": "attachment; filename=optimized_resume.pdf"}
+        )
+    except Exception as e:
+        logger.error(f"Failed to generate PDF: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate PDF: {str(e)}")

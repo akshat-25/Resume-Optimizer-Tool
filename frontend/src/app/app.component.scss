@@ -150,6 +150,13 @@ button {
   padding: 0 22px;
 }
 
+button.secondary {
+  background: #18202a;
+  min-height: 38px;
+  padding: 0 16px;
+  font-size: 0.9rem;
+}
+
 button:disabled {
   cursor: progress;
   opacity: 0.7;
