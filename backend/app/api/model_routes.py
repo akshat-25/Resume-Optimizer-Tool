@@ -2,8 +2,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from __future__ import annotations
-
 from fastapi import APIRouter
 
 from app.services.llm_client import OllamaClient

@@ -1,4 +1,3 @@
-from __future__ import annotations
 
 import logging
 from app.models.schemas import Finding, ParsedResume, Suggestion
